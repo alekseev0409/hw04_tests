@@ -39,7 +39,7 @@ class PostCreateFormTests(TestCase):
             'group': self.group.pk,
         }
         response = self.authorized_client.post(
-            reverse('posts:post_create'),
+            reverse('posts:create'),
             data=form_data,
             follow=True
         )
@@ -61,7 +61,7 @@ class PostCreateFormTests(TestCase):
             'group': self.group.pk,
         }
         self.authorized_client_author.post(
-            reverse('posts:post_create'),
+            reverse('posts:create'),
             data=form_data,
             follow=True
         )
