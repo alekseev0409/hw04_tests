@@ -53,7 +53,7 @@ class StaticURLTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': self.post.id}): HTTPStatus.OK,
             reverse(
-                'posts:edit',
+                'posts:post_edit',
                 kwargs={'post_id': self.post.id}): HTTPStatus.FOUND,
             reverse(
                 'posts:create'): HTTPStatus.FOUND,
@@ -82,7 +82,7 @@ class StaticURLTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': self.post.id}): HTTPStatus.OK,
             reverse(
-                'posts:edit',
+                'posts:post_edit',
                 kwargs={'post_id': self.post.id}): HTTPStatus.FOUND,
             reverse(
                 'posts:create'): HTTPStatus.OK,
@@ -111,7 +111,7 @@ class StaticURLTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': self.post.id}): HTTPStatus.OK,
             reverse(
-                'posts:edit',
+                'posts:post_edit',
                 kwargs={'post_id': self.post.id}): HTTPStatus.OK,
             reverse(
                 'posts:create'): HTTPStatus.OK,
@@ -137,7 +137,7 @@ class StaticURLTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': self.post.id}): 'posts/post_detail.html',
             reverse(
-                'posts:edit',
+                'posts:post_edit',
                 kwargs={'post_id': self.post.id}): 'posts/create_post.html',
             reverse(
                 'posts:create'): 'posts/create_post.html',
