@@ -1,10 +1,7 @@
 from http import HTTPStatus
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from ..models import Group, Post
-
-User = get_user_model()
+from ..models import Group, Post, User
 
 
 class StaticURLTests(TestCase):
@@ -28,6 +25,50 @@ class StaticURLTests(TestCase):
             group=cls.group,
         )
 
+        cls.url_guest_client = {
+            '/': 'posts/index.html',
+            f'/group/{cls.group.slug}/': 'posts/group_list.html',
+            f'/profile/{cls.user_author}/': 'posts/profile.html',
+            f'/posts/{cls.post.id}/': 'posts/post_detail.html',
+        }
+        cls.url_authorized_client = {
+            f'/posts/{cls.post.id}/edit/': 'posts/create_post.html',
+            '/create/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html',
+        }
+        cls.url_found = [
+            f'/posts/{cls.post.id}/comment/',
+            f'/profile/{cls.user_author}/follow/',
+            f'/profile/{cls.user_author}/unfollow/',
+        ]
+
+        cls.field_urls_code = {
+            reverse(
+                'posts:index'): HTTPStatus.OK,
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': cls.group.slug}): HTTPStatus.OK,
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': 'bad_slug'}): HTTPStatus.NOT_FOUND,
+            reverse(
+                'posts:profile',
+                kwargs={'username': cls.user_author}): HTTPStatus.OK,
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': cls.post.id}): HTTPStatus.OK,
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': cls.post.id}): HTTPStatus.FOUND,
+            reverse(
+                'posts:create'): HTTPStatus.OK,
+            '/unexisting_page/': HTTPStatus.NOT_FOUND,
+        }
+        cls.field_urls_code_not_user = {
+            reverse('posts:create'): HTTPStatus.OK,
+            '/unexisting_page/': HTTPStatus.NOT_FOUND
+        }
+
     def setUp(self):
         self.unauthorized_user = Client()
         self.post_author = Client()
@@ -37,87 +78,21 @@ class StaticURLTests(TestCase):
 
     def test_unauthorized_user_urls_status_code(self):
         """Проверка status_code для неавторизованного пользователя."""
-        field_urls_code = {
-            reverse(
-                'posts:index'): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': self.group.slug}): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': 'bad_slug'}): HTTPStatus.NOT_FOUND,
-            reverse(
-                'posts:profile',
-                kwargs={'username': self.user_author}): HTTPStatus.OK,
-            reverse(
-                'posts:post_detail',
-                kwargs={'post_id': self.post.id}): HTTPStatus.OK,
-            reverse(
-                'posts:post_edit',
-                kwargs={'post_id': self.post.id}): HTTPStatus.FOUND,
-            reverse(
-                'posts:create'): HTTPStatus.FOUND,
-            '/unexisting_page/': HTTPStatus.NOT_FOUND,
-        }
-        for url, response_code in field_urls_code.items():
+        for url, template in self.url_guest_client.items():
             with self.subTest(url=url):
-                status_code = self.unauthorized_user.get(url).status_code
-                self.assertEqual(status_code, response_code)
+                response = self.unauthorized_user.get(url)
+                self.assertTemplateUsed(response, template)
 
     def test_authorized_user_urls_status_code(self):
         """Проверка status_code для авторизованного пользователя."""
-        field_urls_code = {
-            reverse(
-                'posts:index'): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': self.group.slug}): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': 'bad_slug'}): HTTPStatus.NOT_FOUND,
-            reverse(
-                'posts:profile',
-                kwargs={'username': self.user_author}): HTTPStatus.OK,
-            reverse(
-                'posts:post_detail',
-                kwargs={'post_id': self.post.id}): HTTPStatus.OK,
-            reverse(
-                'posts:post_edit',
-                kwargs={'post_id': self.post.id}): HTTPStatus.FOUND,
-            reverse(
-                'posts:create'): HTTPStatus.OK,
-            '/unexisting_page/': HTTPStatus.NOT_FOUND,
-        }
-        for url, response_code in field_urls_code.items():
+        for url, response_code in self.field_urls_code.items():
             with self.subTest(url=url):
                 status_code = self.authorized_user.get(url).status_code
                 self.assertEqual(status_code, response_code)
 
     def test_author_user_urls_status_code(self):
         """Проверка status_code для авторизированого автора."""
-        field_urls_code = {
-            reverse(
-                'posts:index'): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': self.group.slug}): HTTPStatus.OK,
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': 'bad_slug'}): HTTPStatus.NOT_FOUND,
-            reverse(
-                'posts:profile',
-                kwargs={'username': self.user_author}): HTTPStatus.OK,
-            reverse(
-                'posts:post_detail',
-                kwargs={'post_id': self.post.id}): HTTPStatus.OK,
-            reverse(
-                'posts:post_edit',
-                kwargs={'post_id': self.post.id}): HTTPStatus.OK,
-            reverse(
-                'posts:create'): HTTPStatus.OK,
-            '/unexisting_page/': HTTPStatus.NOT_FOUND,
-        }
-        for url, response_code in field_urls_code.items():
+        for url, response_code in self.field_urls_code_not_user.items():
             with self.subTest(url=url):
                 status_code = self.post_author.get(url).status_code
                 self.assertEqual(status_code, response_code)
