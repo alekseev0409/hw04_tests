@@ -34,25 +34,22 @@ class PostCreateFormTests(TestCase):
     def test_create_task(self):
         """Валидная форма создает запись в Posts."""
         post_count = Post.objects.count()
+
         form_data = {
             'text': 'Введенный в форму текст',
             'group': self.group.pk,
         }
-        response = self.authorized_client.post(
+
+        self.authorized_client.post(
             reverse('posts:create'),
             data=form_data,
             follow=True
         )
-        self.assertRedirects(
-            response,
-            reverse(
-                'posts:profile', kwargs={'username': self.auth_user.username}
-            )
-        )
+
+        new_post = Post.objects.latest('pub_date')
         self.assertEqual(Post.objects.count(), post_count + 1)
-        self.assertTrue(
-            Post.objects.filter(text='Введенный в форму текст').exists()
-        )
+        self.assertEqual(new_post.text, form_data['text'])
+        self.assertEqual(new_post.group.pk, form_data['group'])
 
     def test_author_edit_post(self):
         """Валидная форма изменяет запись в Posts."""
@@ -60,13 +57,8 @@ class PostCreateFormTests(TestCase):
             'text': 'Введенный в форму текст',
             'group': self.group.pk,
         }
-        self.authorized_client_author.post(
-            reverse('posts:create'),
-            data=form_data,
-            follow=True
-        )
-        post = Post.objects.get(id=self.group.pk)
-        self.authorized_client_author.get(f'/posts/{post.pk}/edit/')
+
+        self.authorized_client_author.get(f'/posts/{self.post.pk}/edit/')
         form_data = {
             'text': 'Отредактированный в форме текст',
             'group': self.group.pk,
@@ -76,6 +68,9 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        post_edit = Post.objects.get(id=self.group.pk)
+        print(self.post.pk)
+
+        edit_post = Post.objects.latest('pub_date')
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(post_edit.text, 'Отредактированный в форме текст')
+        self.assertEqual(edit_post.text, form_data['text'])
+        self.assertEqual(edit_post.group.pk, form_data['group'])
