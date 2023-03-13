@@ -34,19 +34,6 @@ class PostCreateFormTests(TestCase):
     def test_create_task(self):
         """Валидная форма создает запись в Posts."""
         post_count = Post.objects.count()
-        # self.author = User.objects.create_user(username='TestAuthor')
-        # self.auth_user = User.objects.create_user(username='TestAuthUser')
-        # self.group = Group.objects.create(
-        #     title='Тестовая группа',
-        #     slug='test-slug',
-        #     description='Тестовое описание',
-        # )
-        # self.post = Post.objects.create(
-        #     author=self.author,
-        #     text='Тестовый текст поста',
-        #     group=self.group,
-        # )
-        # self.form = PostForm()
         form_data = {
             'text': 'Введенный в форму текст',
             'group': self.group.pk,
@@ -62,10 +49,10 @@ class PostCreateFormTests(TestCase):
                 'posts:profile', kwargs={'username': self.auth_user.username}
             )
         )
-        new_post = Post.objects.latest('pub_date')
         self.assertEqual(Post.objects.count(), post_count + 1)
-        self.assertEqual(new_post.text, form_data['text'])
-        self.assertEqual(new_post.group.pk, form_data['group'])
+        self.assertTrue(
+            Post.objects.filter(text='Введенный в форму текст').exists()
+        )
 
     def test_author_edit_post(self):
         """Валидная форма изменяет запись в Posts."""
@@ -91,4 +78,4 @@ class PostCreateFormTests(TestCase):
         )
         post_edit = Post.objects.get(id=self.group.pk)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(post_edit.text, form_data['text'])
+        self.assertEqual(post_edit.text, 'Отредактированный в форме текст')

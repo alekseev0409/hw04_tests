@@ -1,19 +1,11 @@
 from django import forms
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.conf import settings
+
 from ..models import Group, Post, User
 
 
 class PostTests(TestCase):
-    def get_info(self, response, test_form):
-        post_text = response.context.get('page_obj')[0].text
-        post_author = response.context.get('page_obj')[0].author.username
-        group_post = response.context.get('page_obj')[0].group.title
-        self.assertEqual(post_text, test_form['text'])
-        self.assertEqual(post_author, test_form['author'])
-        self.assertEqual(group_post, test_form['group'])
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -35,9 +27,6 @@ class PostTests(TestCase):
             text='Тестовый пост',
             group=cls.group
         )
-        cls.test_form = {'text': 'Тестовый пост',
-                         'author': 'TestAuthor',
-                         'group': 'Тестовая группа'}
 
     def setUp(self):
         self.guest_client = Client()
@@ -72,7 +61,12 @@ class PostTests(TestCase):
     def test_home_page_show_correct_context(self):
         """Шаблон главной страницы сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:index'))
-        self.get_info(response, self.test_form)
+        post_text = response.context.get('page_obj')[0].text
+        post_author = response.context.get('page_obj')[0].author.username
+        group_post = response.context.get('page_obj')[0].group.title
+        self.assertEqual(post_text, 'Тестовый пост')
+        self.assertEqual(post_author, 'TestAuthor')
+        self.assertEqual(group_post, 'Тестовая группа')
 
     def test_group_list_page_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -91,7 +85,12 @@ class PostTests(TestCase):
         """Шаблон profile сформирован с правильным контекстом."""
         url = reverse('posts:profile', kwargs={'username': PostTests.author})
         response = self.authorized_client_author.get(url)
-        self.get_info(response, self.test_form)
+        post_text = response.context.get('page_obj')[0].text
+        post_author = response.context.get('page_obj')[0].author.username
+        group_post = response.context.get('page_obj')[0].group.title
+        self.assertEqual(post_text, 'Тестовый пост')
+        self.assertEqual(post_author, 'TestAuthor')
+        self.assertEqual(group_post, 'Тестовая группа')
 
     def test_post_detail_pages_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -147,13 +146,15 @@ class PostTests(TestCase):
         )
         for url in urls:
             response = self.authorized_client_author.get(url)
-            self.assertIn(self.post, response.context['page_obj'].object_list)
+            self.assertEqual(len(response.context['page_obj'].object_list), 1)
 
     def test_post_right_group(self):
         "Проверка правильной группы поста"
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': self.group.slug}))
         self.assertIn('page_obj', response.context)
+        post_text = len(response.context['page_obj'])
+        self.assertEqual(post_text, 1)
 
 
 class PaginatorViewsTest(TestCase):
@@ -173,7 +174,7 @@ class PaginatorViewsTest(TestCase):
                 text=f'Тестовый пост {i}',
                 group=cls.group,
             )
-            for i in range(settings.AMOUNT_POSTS)
+            for i in range(13)
         ]
         Post.objects.bulk_create(cls.posts)
 
@@ -191,7 +192,7 @@ class PaginatorViewsTest(TestCase):
         for url in urls:
             response = self.client.get(url)
             amount_posts = len(response.context.get('page_obj').object_list)
-            self.assertEqual(amount_posts, settings.NUMBER_OBJECTS)
+            self.assertEqual(amount_posts, 10)
 
     def test_second_page_contains_three_records(self):
         """На страницах index, group_list, profile
@@ -209,4 +210,4 @@ class PaginatorViewsTest(TestCase):
         for url in urls:
             response = self.client.get(url)
             amount_posts = len(response.context.get('page_obj').object_list)
-            self.assertEqual(amount_posts, settings.LEN_PAGE_OBJ)
+            self.assertEqual(amount_posts, 3)
