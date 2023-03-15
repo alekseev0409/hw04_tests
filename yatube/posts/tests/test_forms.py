@@ -21,7 +21,7 @@ class PostCreateFormTests(TestCase):
             author=cls.author,
             text='Тестовый текст поста',
             group=cls.group,
-            
+
         )
         cls.form = PostForm()
 
@@ -95,7 +95,7 @@ class PostCreateFormTests(TestCase):
             'group': self.group.id,
             'image': uploaded,
         }
-        response = self.authorized_client.post(
+        self.authorized_client.post(
             reverse('posts:create'),
             data=form_data,
             follow=True,
@@ -105,4 +105,3 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(new_post.text, self.post.text)
         self.assertEqual(new_post.group, self.post.group)
         self.assertTrue(new_post.image)
-

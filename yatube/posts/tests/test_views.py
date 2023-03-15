@@ -52,7 +52,6 @@ class PostTests(TestCase):
             group=cls.group,
             image=cls.uploaded
         )
-   
 
     def setUp(self):
         self.guest_client = Client()
@@ -238,4 +237,3 @@ class PaginatorViewsTest(TestCase):
             response = self.client.get(url)
             amount_posts = len(response.context.get('page_obj').object_list)
             self.assertEqual(amount_posts, settings.LEN_PAGE_OBJ)
-
