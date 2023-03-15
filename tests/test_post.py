@@ -69,7 +69,6 @@ class TestPostEditView:
         assert 'form' in response.context, (
             'Проверьте, что передали форму `form` в контекст страницы `/posts/<post_id>/edit/`'
         )
-
         assert 'group' in response.context['form'].fields, (
             'Проверьте, что в форме `form` на странице `/posts/<post_id>/edit/` есть поле `group`'
         )
