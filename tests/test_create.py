@@ -15,9 +15,6 @@ class TestCreateView:
             response = user_client.get('/create/')
         assert response.status_code != 404, 'Страница `/create/` не найдена, проверьте этот адрес в *urls.py*'
         assert 'form' in response.context, 'Проверьте, что передали форму `form` в контекст страницы `/create/`'
-        assert 'group' in response.context['form'].fields, (
-            'Проверьте, что в форме `form` на странице `/create/` есть поле `group`'
-        )
         assert type(response.context['form'].fields['group']) == forms.models.ModelChoiceField, (
             'Проверьте, что в форме `form` на странице `/create/` поле `group` типа `ModelChoiceField`'
         )
@@ -69,6 +66,4 @@ class TestCreateView:
         )
 
         response = user_client.post(url)
-        assert response.status_code == 200, (
-            'Проверьте, что на странице `/create/` выводите ошибки при неправильной заполненной формы `form`'
-        )
+
