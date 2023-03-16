@@ -65,7 +65,7 @@ class PostCreateFormTests(TestCase):
             follow=True
         )
 
-        edit_post = Post.objects.get(pk=self.post.pk)
+        edit_post = Post.objects.get(pk = self.post.pk)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(edit_post.text, form_data['text'])
         self.assertEqual(edit_post.group.pk, form_data['group'])
